@@ -67,8 +67,11 @@ func (p *OauthProxy) SetRedirectUrl(redirectUrl *url.URL) {
 	p.redirectUrl = redirectUrl
 }
 
-func (p *OauthProxy) GetLoginURL(redirectUrl string) string {
+func (p *OauthProxy) GetLoginURL(req *http.Request, redirectUrl string) string {
 	params := url.Values{}
+
+        p.redirectUrl.Host = req.Host
+
 	params.Add("redirect_uri", p.redirectUrl.String())
 	params.Add("approval_prompt", "force")
 	params.Add("scope", p.oauthScope)
@@ -285,7 +288,7 @@ func (p *OauthProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			p.ErrorPage(rw, 500, "Internal Error", err.Error())
 			return
 		}
-		http.Redirect(rw, req, p.GetLoginURL(redirect), 302)
+		http.Redirect(rw, req, p.GetLoginURL(req, redirect), 302)
 		return
 	}
 	if req.URL.Path == oauthCallbackPath {
